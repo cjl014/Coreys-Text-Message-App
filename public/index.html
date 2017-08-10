@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Coreys Chat Application</title>
+
+	<link rel="stylesheet" type="text/css" href="css/chat_main.css" ></link>
+	
+	<script src="https://www.gstatic.com/firebasejs/4.2.0/firebase.js"></script>
+    <script>
+		// Initialize Firebase
+		var config = {
+			apiKey: "AIzaSyATMX8ijfGapT3xF2v_jo4iRhpCEehOMk0",
+			authDomain: "web-chat-application-corey.firebaseapp.com",
+			databaseURL: "https://web-chat-application-corey.firebaseio.com/"
+		};
+		firebase.initializeApp(config);
+	</script>		
+	
+	
+  </head>
+  <body>
+    <div id="chat_application">
+		<div id="chat_authentication">
+			<fieldset>
+				<legend>Corey's Chat App</legend>	
+				<img class="loader_gif" src="images/loader.gif" />
+				<div id="signupOrLogin">
+					<button class="signIn_btn auth_btn" >Sign In</button>
+				</div>
+			</fieldset>
+		</div>
+	</div>
+
+	<script src="js/CoreysChatApp.js"></script>
+  </body>
+</html>
