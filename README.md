@@ -1,5 +1,5 @@
 # Coreys-Text-Message-App
-Chat application assignment
+<h4>Chat application assignment</h4>
 <br>
 -Uses Firebase <br>
 -Allows anonymous login for now <br>
