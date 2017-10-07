@@ -17,22 +17,13 @@
 		};
 		firebase.initializeApp(config);
 	</script>		
-	
-	
   </head>
   <body>
-    <div id="chat_application">
-		<div id="chat_authentication">
-			<fieldset>
-				<legend>Corey's Chat App</legend>	
-				<img class="loader_gif" src="images/loader.gif" />
-				<div id="signupOrLogin">
-					<button class="signIn_btn auth_btn" >Sign In</button>
-				</div>
-			</fieldset>
-		</div>
-	</div>
-
+    <div id="chat_application"></div>
 	<script src="js/CoreysChatApp.js"></script>
+	<script>
+		var chatApp = new CoreysChatApp("chat_application", {
+		});
+	</script>
   </body>
 </html>
