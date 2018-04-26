@@ -1,3 +1,4 @@
+<span style="color: red">Prototype - (Not finished)</span>
 # Coreys-Text-Message-App
 <b>Chat application assignment</b>
 <br>
