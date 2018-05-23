@@ -1,4 +1,10 @@
-//var = CoreysChatApp = CoreysChatApp || {};
+//////      ====    ==     ====    ====  \\   //    //////
+//////    //      //  \\  || _//  ||___   \\ //     //////
+//////	  \\      \\  //  || //   ||       | |      //////
+//////	    ====    ==    || \\    ====    | |      //////
+//////==============================================//////
+
+
 
 /** Namespace closure - CoreysChatApp **/
 var CoreysChatApp = (function() {
@@ -6,70 +12,77 @@ var CoreysChatApp = (function() {
 	var databaseRef = database.ref();
 	var databaseUsersRef = database.ref("Users");
 	var databaseMessageRef = database.ref("Messages");
+	var chatAppContainer;
+	var settings = {};
 	
-	/** Constructor 'class' - ChatApp **/
-	function ChatApp(elementId, userSettings){
-		this.userSettings = userSettings;
-		//TODO: add settings for this app. No settings/options are setup yet. 
-		var defaultSettings = {
+	/** Class/Constructor - CoreysChatApp **/
+	function CoreysChatApp(elementId, userSettings){
+		this.defaultSettings = {
+			'color': '',
+			'buttonColor': ''
 		};
+		chatAppContainer = document.getElementById(elementId);
 		
-		addSettings(this.userSettings);
-		this.initialize(elementId);
-		
-		function addSettings(userSettings){
-			var userSettings = userSettings;
-			var settings;
-			
-			for (var defaultS in defaultSettings){
-				for (var userS in userSettings){
-					if(defaultS == userS){
-						defaultSettings[defaultS] = userSettings[userS];
+		this.addSettings(userSettings);
+		this.initialize();
+	}
+	
+	// Adds the users settings to the default settings
+	CoreysChatApp.prototype.addSettings = function(userSettings){
+		for (var defaultProp in this.defaultSettings){
+				for (var userProp in userSettings){
+					if(defaultProp == userProp){
+						this.defaultSettings[defaultProp] = userSettings[userProp];
 					}
 				}
 			}
-			console.log(defaultSettings);
-		}
-	};
+		settings = this.defaultSettings;
+	}
+	
 	// Creates the initial page and starts the chat app
-	ChatApp.prototype.initialize = function(elementId){
-		var element = document.getElementById(elementId);
+	CoreysChatApp.prototype.initialize = function(){
 		var chatLoginPage = new ChatLoginPage();
 		
-		chatLoginPage.render(element);
-		chatLoginPage.authentication(element);
+		chatLoginPage.render();
+		chatLoginPage.authentication();
 	};
 	
-	/** Constructor 'class' - ChatLoginPage **/
+	/** Class/Constructor - ChatLoginPage **/
 	function ChatLoginPage(){
-		
 	}
+	
 	// Creates the login page
-	ChatLoginPage.prototype.render = function(element){
-		var HTML = "";
-			
-			HTML += '<div id="chat_authentication">' +
+	ChatLoginPage.prototype.render = function(){
+		var HTML =  '<div class="chat_authentication">' +
 					'	<fieldset>' +
 					'		<legend>Corey\'s Chat App</legend>	' +
 					'			<img class="loader_gif" src="images/loader.gif" />' +
-					'			<div id="signupOrLogin">' +
-					'			<button class="signIn_btn auth_btn" >Sign In</button>' +
+					'			<div class="signupOrLogin">' +
+					'			<button class="signIn_btn" >Sign In</button>' +
 					'		</div>' +
 					'	</fieldset>' +
 					'</div>';
 			
-			element.insertAdjacentHTML('beforeend', HTML);
+		chatAppContainer.insertAdjacentHTML('beforeend', HTML);	
+		var buttons = document.querySelectorAll("#" + chatAppContainer.id + " button");
+		
+		if(settings.color != "")
+			document.querySelector("#" + chatAppContainer.id + " .chat_authentication").style.backgroundColor = settings.color;
+		if(settings.buttonColor != ""){
+			for(var i = 0; i < buttons.length; i++){
+				buttons[i].style.backgroundColor = settings.buttonColor;
+			}
+		}
 	}
 	
-	ChatLoginPage.prototype.authentication = function(element){
-		this.element = element;
+	ChatLoginPage.prototype.authentication = function(){
 		var supportClass = new SupportClass();
-		
 		
 		/**Set event listeners**/
 		function eventListeners() {
-			var signIn_btn = document.getElementsByClassName("signIn_btn")[0];
-			var loader_gif = document.getElementsByClassName("loader_gif")[0];
+			var signIn_btn = document.querySelector("#" + chatAppContainer.id + " .signIn_btn");
+			var signupOrLogin = document.querySelector("#" + chatAppContainer.id + " .signupOrLogin");
+			var loader_gif = document.querySelector("#" + chatAppContainer.id + " .loader_gif");
 			
 			// When user clicks the "Sign In" button, log them in as an anonymous user
 			signIn_btn.onclick = function() {
@@ -106,22 +119,21 @@ var CoreysChatApp = (function() {
 							var chatLoginPage = new ChatLoginPage();
 							alert("The maximum amount of users have been reached. Please wait for a user to logout, refresh, and try again.");
 							
-							element.innerHTML = "";
-							chatLoginPage.render(element);
-							//chatLoginPage.authentication(element);
+							chatAppContainer.innerHTML = "";
+							chatLoginPage.render();
 						}
 						else{
-							var chat_authentication_div = document.getElementById("chat_authentication");
+							var chat_authentication_div = document.querySelector("#" + chatAppContainer.id + " .chat_authentication");
 							var isUserInDatabase = false;
 							var usersArray = [];
 							var userValue = "";
 							var users = {};
-							var chatMenuWindow = new ChatMenuWindow(element, onAuthFunction);
-							var chatWindow = new ChatWindow(element);
-							var chatUsersWindow = new ChatUsersWindow(element);
-							var chatBox = new ChatBox(element);
+							var chatMenuWindow = new ChatMenuWindow(chatAppContainer);
+							var chatWindow = new ChatWindow(chatAppContainer);
+							var chatUsersWindow = new ChatUsersWindow(chatAppContainer);
+							var chatBox = new ChatBox(chatAppContainer);
 							
-							element.removeChild(chat_authentication_div);
+							chatAppContainer.removeChild(chat_authentication_div);
 							
 							supportClass.removeMessagesFromDatabase();
 							chatMenuWindow.render()
@@ -175,34 +187,40 @@ var CoreysChatApp = (function() {
 		eventListeners();
 	}
 	
-	/** Constructor "class" - ChatMenuWindow **/
-	function ChatMenuWindow(element, onAuthFunction) {
-		var that = this;
-		this.chat_app_div = element; 
-		that.onAuthFunction = onAuthFunction;
+	/** Class/Constructor - ChatMenuWindow **/
+	function ChatMenuWindow() {
 	}
+	
 	// Create chat menu window
 	ChatMenuWindow.prototype.render = function(){
-		var HTML = "";
-		
-		HTML += '<div id="chat_menu">' +
+		var HTML = '<div class="chat_menu">' +
 				'	<button class="logout_btn">Logout</button>' + 
 				'	<button class="clear_msgs_btn" >Clear messages</button>' +
 				'</div>';
 		
-		this.chat_app_div.insertAdjacentHTML('beforeend', HTML);
+		chatAppContainer.insertAdjacentHTML('beforeend', HTML);
+		var buttons = document.querySelectorAll("#" + chatAppContainer.id + " button");
+		
+		if(settings.color != "")
+				document.querySelector("#" + chatAppContainer.id + " .chat_menu").style.backgroundColor = settings.color;
+		if(settings.buttonColor != ""){
+			for(var i = 0; i < buttons.length; i++){
+				buttons[i].style.backgroundColor = settings.buttonColor;
+			}
+		}
 		this.eventListeners();
 	};
+	
 	// Deletes messages from the chat screeen
 	ChatMenuWindow.prototype.removeMessages = function(){
-			var chat_window_td = document.getElementById("chat_window_td");
+			var chat_window_td = document.querySelector("#" + chatAppContainer.id + " .chat_window_td");
 			
 			databaseMessageRef.remove();
 			chat_window_td.innerHTML = "";
 	};
+	
 	// Logs out of the anonymous user
-	ChatMenuWindow.prototype.logout = function(element){
-		var chat_app_div = element;
+	ChatMenuWindow.prototype.logout = function(){
 		var users = {};
 		var userValue;
 		var currentUser = firebase.auth().currentUser;
@@ -228,96 +246,96 @@ var CoreysChatApp = (function() {
 		// Sign out
 		firebase.auth().signOut().then(function() {
 			var chatLoginPage = new ChatLoginPage();
-
+			
 			// Sign-out successful.
-			chat_app_div.innerHTML = "";
-			chatLoginPage.render(chat_app_div);
-			chatLoginPage.authentication(chat_app_div);
-			alert("You have signed out!");
-			}, function(error) {
+			chatAppContainer.innerHTML = "";
+			chatLoginPage.render();
+			chatLoginPage.authentication();
+			setTimeout(function(){ alert("You have signed out!"); }, 100); //sometimes the alert shows before showing the logged out page. This helps.
+		}, function(error) {
 				// An error happened.
 				console.log("error signing out");
 				alert("error signing out");
 			});
 	};
+	
 	// Create HTML for login screen
 	ChatMenuWindow.prototype.renderChatAuthDiv = function(){
-		var HTML = "";
-			
-		HTML = '<div id="chat_authentication">' +
+		var HTML = '<div class="chat_authentication">' +
 				'	<fieldset>' +
 				'		<legend>Corey\'s Chat App</legend>' +
 				'		<img class="loader_gif" src="images/loader.gif" />' +
-				'		<div id="signupOrLogin">' +
-				'			<button class="signIn_btn auth_btn" >Sign In</button>' +
+				'		<div class="signupOrLogin">' +
+				'			<button class="signIn_btn" >Sign In</button>' +
 				'		</div>' +
 				'	</fieldset>' +
 				'</div>'
 				
-		this.chat_app_div.insertAdjacentHTML('beforeend', HTML);
+		chatAppContainer.insertAdjacentHTML('beforeend', HTML);
 	};
+	
 	// Sets event listeners for chat menu window
 	ChatMenuWindow.prototype.eventListeners = function(){
 		var that = this;
-		var clear_msgs_btn = document.getElementsByClassName("clear_msgs_btn")[0];
-		var logout_btn = document.getElementsByClassName("logout_btn")[0];
+		var clear_msgs_btn = document.querySelector("#" + chatAppContainer.id + " .clear_msgs_btn");
+		var logout_btn = document.querySelector("#" + chatAppContainer.id + " .logout_btn");
 		
 		clear_msgs_btn.onclick = function(){
 			that.removeMessages();
 		}
 		logout_btn.onclick = function(){
-			that.logout(that.chat_app_div);
+			that.logout();
 		}
 	};
 	
-	/** Constructor "class" - ChatWindow **/
-	function ChatWindow(element) {
-		this.chat_app_div = element;
-	}	
+	/** Class/Constructor - ChatWindow **/
+	function ChatWindow() {
+	}
+	
 	// Create HTML for the page
 	ChatWindow.prototype.render = function(){
-		var HTML = "";
-			
-		HTML += '<div id="chat_window">' +
+		var HTML = '<div class="chat_window">' +
 				'	<table id="chat_window_table">' +
 				'		<tr>' +
-				'			<td id="chat_window_td">' +
+				'			<td class="chat_window_td">' +
 				'			</td>' +
 				'		</tr>' +
 				'	</table>' +
 				'</div>';
 		
-		this.chat_app_div.insertAdjacentHTML('beforeend', HTML);
+		chatAppContainer.insertAdjacentHTML('beforeend', HTML);
 	};
 	
-	/** Constructor "class" - ChatUsersWindow **/
-	function ChatUsersWindow(element) {
-		this.chat_app_div = element;
-		var currentUser = firebase.auth().currentUser;
+	/** Class/Constructor - ChatUsersWindow **/
+	function ChatUsersWindow() {
 	}
+	
 	// Create HTML for the page
 	ChatUsersWindow.prototype.render = function(){
-		var HTML = "";
-		
-		HTML += '<div id="chat_users_window">' +
-				'	<div id="chat_users_window_title">Users Window <span style="font-size:13px; color: lime"></span></div>' + 
+		var HTML = '<div class="chat_users_window">' +
+				'	<div class="chat_users_window_title">Users Window <span style="font-size:13px; color: lime"></span></div>' + 
 				'</div>';
 		
-		this.chat_app_div.insertAdjacentHTML('beforeend', HTML);
+		chatAppContainer.insertAdjacentHTML('beforeend', HTML);
+		if(settings.color != "")
+				document.querySelector("#" + chatAppContainer.id + " .chat_users_window_title").style.backgroundColor = settings.color;
 		this.eventListeners();
 	}
+	
 	// Adds user to winow
 	ChatUsersWindow.prototype.addUserToWindow = function(name){
 		this.name = name;
-		var chat_users_window_title_div = document.getElementById("chat_users_window_title");
-		var chat_user_divs = document.getElementsByClassName("chat_user_div");
+		var chat_users_window_title_div = document.querySelector("#" + chatAppContainer.id + " .chat_users_window_title");
+		var chat_user_divs = document.querySelector("#" + chatAppContainer.id + " .chat_user_div");
 		
 		chat_users_window_title_div.insertAdjacentHTML('afterend', '<div class="chat_user_div" >' + this.name + '</div>');
 	}
+	
 	// Removes user from window
 	ChatUsersWindow.prototype.removeUserFromWindow = function(name){
-		var chat_users_window_div = document.getElementById("chat_users_window");
-		var chat_user_divs = document.getElementsByClassName("chat_user_div");
+		var chat_users_window_div = document.querySelector("#" + chatAppContainer.id + " .chat_users_window");
+		var chat_user_divs = document.querySelectorAll("#" + chatAppContainer.id + " .chat_user_div");
+		var userInWindow = "";
 		
 		for(i=0; i < chat_user_divs.length; i++){
 			userInWindow = chat_user_divs[i].innerHTML;
@@ -326,9 +344,11 @@ var CoreysChatApp = (function() {
 			}
 		}
 	}
+	
 	// Returns true if user is in the window
 	ChatUsersWindow.prototype.userIsInWindow = function(name){
-		var chat_user_divs = document.getElementsByClassName("chat_user_div");
+		var chat_user_divs = document.querySelectorAll("#" + chatAppContainer.id + " .chat_user_div");
+		var userInWindow = "";
 		
 		for(i=0; i < chat_user_divs.length; i++){
 			userInWindow = chat_user_divs[i].innerHTML;
@@ -337,6 +357,7 @@ var CoreysChatApp = (function() {
 			}
 		}
 	}
+	
 	// Sets event listeners for chat window
 	ChatUsersWindow.prototype.eventListeners = function(){
 		var that = this;
@@ -344,7 +365,6 @@ var CoreysChatApp = (function() {
 		databaseUsersRef.on('value', function(data){
 			var users = data.val();
 			var userValue = "";
-			var userInWindow;
 			// Loop through database users
 			for (var key in users){
 				userValue = users[key];
@@ -359,35 +379,36 @@ var CoreysChatApp = (function() {
 	}
 	
 	
-	/** Constructor "class" - ChatBox **/
-	function ChatBox(element) {
-		this.chat_app_div = element;
+	/** Class/Constructor- ChatBox **/
+	function ChatBox() {
 	}
 	
 	ChatBox.prototype.render = function(){
-		var HTML = "";
-		var chat_window = document.getElementById("chat_window");
-		
-		HTML += '<div id="chat_box">' +
-				'	<input id="chat_tb" type="text" placeholder="Enter message..." />' +
-				'	<button id="chat_send_btn">Send</button>' +
-				'	<button id="chat_img_btn" ><img src="images/img_attach1.png" /></button>' +
-				'	<input type="file" id="img_file" />' +
+		var chat_window = document.querySelector("#" + chatAppContainer.id + " .chat_window");
+		var HTML = '<div class="chat_box">' +
+				'	<input class="chat_tb" type="text" placeholder="Enter message..." />' +
+				'	<button class="chat_send_btn">Send</button>' +
+				'	<button class="chat_img_btn" ><img src="images/img_attach1.png" /></button>' +
+				'	<input type="file" class="img_file" />' +
 				'</div>'
 				
-		this.chat_app_div.insertAdjacentHTML('beforeend', HTML);
+		chatAppContainer.insertAdjacentHTML('beforeend', HTML);
+		var buttons = document.querySelectorAll("#" + chatAppContainer.id + " .chat_box button");
 		chat_window.scrollTop = chat_window.scrollHeight;
+		if(settings.buttonColor != ""){
+			for(var i = 0; i < buttons.length; i++){
+				buttons[i].style.backgroundColor = settings.buttonColor;
+			}
+		}
 		this.eventListeners();
 	}
 	
 	ChatBox.prototype.sendMessage = function(){
 		var userId = firebase.auth().currentUser.uid;
-		var chat_textBox = document.getElementById("chat_tb");
-		var chat_window_td = document.getElementById("chat_window_td");
-		var chat_window = document.getElementById("chat_window");
-		var HTML = "";
-
-		HTML += '<div class="sent_msg_div"><div class="chat_msg sent_msg">' + 
+		var chat_textBox = document.querySelector("#" + chatAppContainer.id + " .chat_tb");
+		var chat_window_td = document.querySelector("#" + chatAppContainer.id + " .chat_window_td");
+		var chat_window = document.querySelector("#" + chatAppContainer.id + " .chat_window");
+		var HTML = '<div class="sent_msg_div"><div class="chat_msg sent_msg">' + 
 				chat_textBox.value + 
 				'</div></div>';
 		if(chat_textBox.value !== ""){
@@ -405,11 +426,9 @@ var CoreysChatApp = (function() {
 	}
 	
 	ChatBox.prototype.receiveMessage = function(message){
-		var chat_window_td = document.getElementById("chat_window_td");
-		var chat_window = document.getElementById("chat_window");
-		var HTML = "";
-
-		HTML += '<div class="receive_msg_div"><div class="chat_msg receive_msg">' + 
+		var chat_window_td = document.querySelector("#" + chatAppContainer.id + " .chat_window_td");
+		var chat_window = document.querySelector("#" + chatAppContainer.id + " .chat_window");
+		var HTML = '<div class="receive_msg_div"><div class="chat_msg receive_msg">' + 
 				message + 
 				'</div></div>';
 		chat_window_td.insertAdjacentHTML('beforeend', HTML);
@@ -423,10 +442,10 @@ var CoreysChatApp = (function() {
 	ChatBox.prototype.eventListeners = function(){
 		var that = this;
 		var userId = firebase.auth().currentUser.uid;
-		var send_btn = document.getElementById("chat_send_btn");
-		var chat_textBox = document.getElementById("chat_tb");
-		var chat_img_btn = document.getElementById("chat_img_btn");
-		var hidden_img_btn = document.getElementById("img_file");
+		var send_btn = document.querySelector("#" + chatAppContainer.id + " .chat_send_btn");
+		var chat_textBox = document.querySelector("#" + chatAppContainer.id + " .chat_tb");
+		var chat_img_btn = document.querySelector("#" + chatAppContainer.id + " .chat_img_btn");
+		var hidden_img_btn = document.querySelector("#" + chatAppContainer.id + " .img_file");
 		var messages_array = [];
 	
 		send_btn.onclick = function() {
@@ -450,13 +469,15 @@ var CoreysChatApp = (function() {
 		});
 	}
 	
+	/** Class/Constructor - SupportClass **/
 	function SupportClass() {
 
 	}
+	
 	// removes messages from database
 	SupportClass.prototype.removeMessagesFromDatabase = function(){
 		databaseMessageRef.remove();
 	};
 	
-	return ChatApp;
+	return CoreysChatApp;
 }());
