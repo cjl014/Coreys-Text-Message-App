@@ -1,7 +1,7 @@
 body {
 	background-image: url("../images/bg1.png");
 }
-#chat_authentication {
+.chat_authentication {
 	max-width: 700px;
 	width: 100%;
 	height: 300px;
@@ -10,19 +10,19 @@ body {
 	border-radius: 50px;
 	border: 5px solid lightgray;
 }
-#signupOrLogin {
+.signupOrLogin {
 	width: 100%;
 	text-align: center;
 	margin: 0 auto;
 	padding-top: 90px;
 }
-.auth_btn {
+.signIn_btn {
 	font-size: 30px;
 	width: 100%;
 	max-width: 150px;
 	outline: none;
 }
-#logIn_submit, #signUp_submit {
+.logIn_submit, .signUp_submit {
 	border-radius: 50px;
 	border-style: solid;
 }
@@ -53,7 +53,7 @@ fieldset {
 	outline: none;
 	box-sizing: border-box;
 }
-#chat_window {
+.chat_window {
 	float: left;
 	width: 70%;
 	height: 500px;
@@ -61,24 +61,24 @@ fieldset {
 	overflow: auto;
 	box-sizing: border-box;
 }
-#chat_window table {
+.chat_window table {
 	vertical-align: bottom;
 	height: 500px;
 	width: 100%;
 }
-#chat_window td {
+.chat_window td {
 	vertical-align: bottom;
 	height: 500px;
 	padding-bottom: 10px;
 }
-#chat_users_window {
+.chat_users_window {
 	float: right;
 	width: 20%;
 	height: 500px;
 	background-color: dimgray;
 	box-sizing: border-box;
 }
-#chat_users_window_title {
+.chat_users_window_title {
 	background-color: lightslategrey;
 	padding: 10px;
 	font-size: large;
@@ -90,7 +90,7 @@ fieldset {
 	padding: 12px 12px 8px 12px;
 	color: lightgreen;
 }
-#chat_tb {
+.chat_tb {
 	width: 60%;
 	height: 50px;
 	border-radius: 20px 0px 0px 20px;
@@ -102,21 +102,21 @@ fieldset {
 	padding: 0px 10px;
 	box-sizing: border-box;
 }
-#chat_box button {
+.chat_box button {
 	height: 50px;
 	width: 10%;
 	float:left;
 	box-sizing: border-box;
 }
-#chat_img_btn img {
+.chat_img_btn img {
 	width: 100%;
 	max-width: 50px;
 	min-width: 20px;
 }
-#img_file {
+.img_file {
 	visibility: hidden;
 }
-#chat_menu {
+.chat_menu {
 	float: left;
 	width: 10%;
 	height: 500px;
@@ -124,7 +124,7 @@ fieldset {
 	/*background-color: lavender;*/
 	box-sizing: border-box;
 }
-#chat_menu button {
+.chat_menu button {
 	width: 100%;
 	height: 40px;
 	opacity: 0.9;
