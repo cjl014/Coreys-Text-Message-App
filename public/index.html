@@ -17,12 +17,15 @@
 		};
 		firebase.initializeApp(config);
 	</script>		
+	<script src="js/CoreysChatApp.js"></script>
   </head>
   <body>
     <div id="chat_application"></div>
-	<script src="js/CoreysChatApp.js"></script>
+	
 	<script>
-		var chatApp = new CoreysChatApp("chat_application", {
+		var CoreysChatApp1 = new CoreysChatApp("chat_application", {
+			"color" : "lightslategrey",
+			"buttonColor" : ""
 		});
 	</script>
   </body>
