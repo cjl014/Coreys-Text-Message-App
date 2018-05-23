@@ -11,7 +11,7 @@
 
 <b>Objects/classes</b>
   -
--ChatApp
+-CoreysChatApp
   -
 -ChatLoginPage
   -
