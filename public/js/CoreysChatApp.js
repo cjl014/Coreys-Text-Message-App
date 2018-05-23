@@ -128,10 +128,11 @@ var CoreysChatApp = (function() {
 							var usersArray = [];
 							var userValue = "";
 							var users = {};
-							var chatMenuWindow = new ChatMenuWindow(chatAppContainer);
-							var chatWindow = new ChatWindow(chatAppContainer);
-							var chatUsersWindow = new ChatUsersWindow(chatAppContainer);
-							var chatBox = new ChatBox(chatAppContainer);
+							var objUpdate = {};
+							var chatMenuWindow = new ChatMenuWindow();
+							var chatWindow = new ChatWindow();
+							var chatUsersWindow = new ChatUsersWindow();
+							var chatBox = new ChatBox();
 							
 							chatAppContainer.removeChild(chat_authentication_div);
 							
@@ -161,9 +162,8 @@ var CoreysChatApp = (function() {
 											userValue = users[key];
 											// Update the user database with the uid of the current user
 											if(userValue == "offline" ){
-												databaseUsersRef.update({
-													[key]: currentUser.uid
-												});
+												objUpdate[key] = currentUser.uid; //tip: use this instead of computed property because IE doesn't support
+												databaseUsersRef.update(objUpdate);
 												var dbUserRef = database.ref("Users/" + key);
 												dbUserRef.onDisconnect().set("offline");
 												break;
@@ -224,6 +224,7 @@ var CoreysChatApp = (function() {
 		var users = {};
 		var userValue;
 		var currentUser = firebase.auth().currentUser;
+		var objUpdate = {};
 		
 		// Loops through the database of users (There should only be 2 users)
 		databaseUsersRef.on('child_added', function(data) {
@@ -234,9 +235,8 @@ var CoreysChatApp = (function() {
 				for (var key in users){
 					userValue = users[key];
 					if(userValue == currentUser.uid){
-						databaseUsersRef.update({
-								[key]: "offline"
-							});
+						objUpdate[key] = "offline"; //tip: use this instead of computed property because IE doesn't support
+						databaseUsersRef.update(objUpdate);
 						break;
 					}
 				}	
