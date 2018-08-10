@@ -3,30 +3,32 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Coreys Chat Application</title>
-
-	<link rel="stylesheet" type="text/css" href="css/chat_main.css" ></link>
+    <title>Corey's Chat Application</title>	
 	
-	<script src="https://www.gstatic.com/firebasejs/4.2.0/firebase.js"></script>
-    <script>
-		// Initialize Firebase
-		var config = {
-			apiKey: "AIzaSyATMX8ijfGapT3xF2v_jo4iRhpCEehOMk0",
-			authDomain: "web-chat-application-corey.firebaseapp.com",
-			databaseURL: "https://web-chat-application-corey.firebaseio.com/"
-		};
-		firebase.initializeApp(config);
-	</script>		
-	<script src="js/CoreysChatApp.js"></script>
+	<link rel="stylesheet" type="text/css" href="css/example_css.css"></link>
+	
+	<!-- Add our CSS file below-->
+	<link rel="stylesheet" type="text/css" href="css/cca_main.css"></link>
   </head>
   <body>
+	<!-- Add your div to contain our Chat Application -->
     <div id="chat_application"></div>
 	
 	<script>
-		var CoreysChatApp1 = new CoreysChatApp("chat_application", {
-			"color" : "lightslategrey",
-			"buttonColor" : ""
+		<!-- initialize and add the div id to the parameter -->
+		document.addEventListener("DOMContentLoaded", function(event){
+			var CoreysChatApp1 = new CoreysChatApp("chat_application", 
+			{  //add settings
+				"mainColor" : "lightslategrey",
+				"buttonColor" : "",
+				'chatWindowColor': '#f2f2f2'
+			});
 		});
 	</script>
+	
+	<!-- Add the FireBase JS script -->
+	<script src="https://www.gstatic.com/firebasejs/4.2.0/firebase.js"></script>
+	<!-- Add our JS file -->
+	<script src="js/CoreysChatApp.js"></script>
   </body>
 </html>

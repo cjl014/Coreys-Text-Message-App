@@ -1,7 +1,3 @@
-#chat_application {
-		height: 300px;
-}
-
 .cca_auth {
 	margin: 0 auto;
 	border-radius: 50px;
@@ -51,7 +47,6 @@
 .cca_window {
 	float: left;
 	width: 70%;
-	height: 83%;
 	overflow: auto;
 	box-sizing: border-box;
 }
@@ -133,6 +128,7 @@
 	background-color: lightyellow;
 	display: inline-block;
 	word-break: break-word;
+	margin-top: 1px;
 }
 
 .cca_window .sent_msg {
@@ -147,4 +143,8 @@
 	display: none;
 	text-align: center;
 	margin: 0 auto;
+}
+
+.cca_users_window, .cca_window, .cca_menu{
+	border: 1px #c2b9df solid;
 }
