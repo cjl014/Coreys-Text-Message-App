@@ -7,3 +7,7 @@ body {
 		width: 1200px;
 		height: 500px;
 }
+
+.cca_img_btn img {
+    max-width: 50px !important;
+}

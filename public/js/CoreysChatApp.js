@@ -47,7 +47,11 @@ var CoreysChatApp = (function() {
 				'buttonColor': '',
 				'appWidth': '100%',
 				'appHeight': '100%',
-				'chatWindowColor': '#f2f2f2'
+				'chatWindowColor': '#f2f2f2',
+				'loaderImage': '',
+				'sendMessageSound': '',
+				'receiveMessageSound': '',
+				'attachmentImage': 'https://www.w3.org/TR/WWWicn/camera.gif',
 			}
 			chatAppContainer = document.getElementById(elementId);
 			
@@ -100,7 +104,7 @@ var CoreysChatApp = (function() {
 			this.legend.innerHTML = "Corey's Chat App";
 			
 			this.loader_img.className = "cca_loader_gif";
-			this.loader_img.src = "images/loader.gif";
+			this.loader_img.src = settings.loaderImage;
 			this.loader_img.style.display = "none";
 			
 			this.login_div.className = "cca_signupOrLogin";
@@ -530,17 +534,17 @@ var CoreysChatApp = (function() {
 			this.imageBtn.className = "cca_img_btn";
 			this.imageBtn.style.backgroundColor = settings.buttonColor;
 			
-			this.imageBtnImg.src = "images/img_attach1.png";
+			this.imageBtnImg.src = settings.attachmentImage;
 			
 			this.fileInput.className = "cca_img_file";
 			this.fileInput.type = "file";
 			
-			this.receiveSound.src = "sounds/receive_msg.wav";
+			this.receiveSound.src = settings.sendMessageSound;
 			this.receiveSound.setAttribute("preload", "auto");
 			this.receiveSound.setAttribute("controls", "none");
 			this.receiveSound.style.display = "none";
 			
-			this.sendSound.src = "sounds/send_msg.wav";
+			this.sendSound.src = settings.receiveMessageSound;
 			this.sendSound.setAttribute("preload", "auto");
 			this.sendSound.setAttribute("controls", "none");
 			this.sendSound.style.display = "none";
@@ -588,7 +592,9 @@ var CoreysChatApp = (function() {
 				this.textBox.value = "";
 				chatWindow.container.scrollTop = chatWindow.container.scrollHeight;
 				
-				this.sendSound.play();
+				if(settings.sendMessageSound != ""){
+					this.sendSound.play();
+				}
 			}
 			
 			// Check how many users
@@ -650,7 +656,11 @@ var CoreysChatApp = (function() {
 			chatWindow.td.insertAdjacentHTML('beforeend', HTML);
 			chatWindow.container.scrollTop = chatWindow.container.scrollHeight;
 			
-			this.receiveSound.play();
+			if(settings.receiveMessageSound != ""){
+				this.receiveSound.play();
+			}
+				
+			
 		}
 		
 		roboticResponse(message){
@@ -661,7 +671,9 @@ var CoreysChatApp = (function() {
 				chatWindow.td.insertAdjacentHTML('beforeend', HTML);
 				chatWindow.container.scrollTop = chatWindow.container.scrollHeight;
 				
-				this.receiveSound.play();
+				if(settings.receiveMessageSound != ""){
+					this.receiveSound.play();
+				}
 		}
 		
 		addImage(){
