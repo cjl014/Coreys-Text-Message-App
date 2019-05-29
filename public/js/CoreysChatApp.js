@@ -16,17 +16,13 @@ Version:
 firebase.initializeApp({
 	apiKey: "AIzaSyATMX8ijfGapT3xF2v_jo4iRhpCEehOMk0",
 	authDomain: "web-chat-application-corey.firebaseapp.com",
-	databaseURL: "https://web-chat-application-corey.firebaseio.com/",
-	storageBucket: "gs://web-chat-application-corey.appspot.com/"
+	databaseURL: "https://web-chat-application-corey.firebaseio.com/"
 });
 
 /** Namespace closure - CoreysChatApp **/
 var CoreysChatApp = (function() {
 	
 	/** Global Variables **/
-	var storage = firebase.storage();
-	var storageRef = storage.ref();
-	var chatImageRef = storageRef.child("images/test.png");
 	var database = firebase.database();
 	var dbRef = database.ref();
 	var dbUsersRef = database.ref("Users");
@@ -101,7 +97,7 @@ var CoreysChatApp = (function() {
 		// Creates the login page
 		render(){
 			this.container.className = "cca_auth";
-			this.container.style.background = settings.mainColor;
+			this.container.style.backgroundColor = settings.mainColor;
 			this.container.style.width = settings.appWidth;
 			this.container.style.height = settings.appHeight;
 			
@@ -260,8 +256,9 @@ var CoreysChatApp = (function() {
 		// Create chat menu window
 		render(){
 			this.container.className = "cca_menu";
-			this.container.style.background = settings.mainColor;
+			this.container.style.backgroundColor = settings.mainColor;
 			this.container.style.height = settings.appHeight;
+			this.container.style.backgroundColor = settings.mainColor;
 			
 			this.logout_btn.className = "cca_logout_btn";
 			this.logout_btn.style.backgroundColor = settings.buttonColor;
@@ -411,7 +408,7 @@ var CoreysChatApp = (function() {
 			this.container.style.height = settings.appHeight;
 			
 			this.titleDiv.className = "cca_users_window_title";
-			this.titleDiv.style.background = settings.mainColor;
+			this.titleDiv.style.backgroundColor = settings.mainColor;
 			this.titleDiv.innerHTML = "Users Window";
 			
 			this.titleSpan.style.fontSize = "13px";
@@ -541,7 +538,6 @@ var CoreysChatApp = (function() {
 			
 			this.fileInput.className = "cca_img_file";
 			this.fileInput.type = "file";
-			this.fileInput.accept = "image/*";
 			
 			this.receiveSound.src = settings.sendMessageSound;
 			this.receiveSound.setAttribute("preload", "auto");
@@ -578,47 +574,22 @@ var CoreysChatApp = (function() {
 			this.eventListeners();
 		}
 	
-		sendMessage(type, imgURL){
+		sendMessage(){
 			var that = this;
 			var userId = firebase.auth().currentUser.uid;
-			var HTML = '';
-			
-			if(type == "text"){
-				HTML = '<div class="sent_msg_div"><div class="chat_msg sent_msg">' + 
+			var HTML = '<div class="sent_msg_div"><div class="chat_msg sent_msg">' + 
 						this.textBox.value + 
 						'</div></div>';
-				if (this.textBox.value !== ""){
-					dbMessageRef.remove();
-					// Add message to database
-					dbMessageRef.push().set({
-						"type": "text",
-						"message": this.textBox.value,
-						"userId": userId,
-						"timeStamp": "null"
-					});
-					chatWindow.td.insertAdjacentHTML('beforeend', HTML);
-					this.textBox.value = "";
-					chatWindow.container.scrollTop = chatWindow.container.scrollHeight;
-					
-					if(settings.sendMessageSound != ""){
-						this.sendSound.play();
-					}
-				}
-			}
-			if(type == "image"){
-				HTML = '<div class="sent_msg_div"><div class="chat_msg sent_msg"><img src="' + 
-						imgURL + 
-						'" style="max-width: 300px" /></div></div>';
+			if (this.textBox.value !== ""){
 				dbMessageRef.remove();
-					// Add message to database
-					dbMessageRef.push().set({
-						"type": "image",
-						"message": "",
-						"userId": userId,
-						"timeStamp": "null"
-					});
-				
+				// Add message to database
+				dbMessageRef.push().set({
+					"message": this.textBox.value,
+					"userId": userId,
+					"timeStamp": "null"
+				});
 				chatWindow.td.insertAdjacentHTML('beforeend', HTML);
+				this.textBox.value = "";
 				chatWindow.container.scrollTop = chatWindow.container.scrollHeight;
 				
 				if(settings.sendMessageSound != ""){
@@ -707,40 +678,6 @@ var CoreysChatApp = (function() {
 		
 		addImage(){
 			// TODO:
-			var that = this;
-			var file = this.fileInput.files[0];
-			chatImageRef.put(file).then(function(snapshot){
-				console.log('uploaded a blob or file');
-				
-				chatImageRef.getDownloadURL().then(function(url) {
-					that.sendMessage("image", url);
-				}).catch(function(error) {
-
-				  // A full list of error codes is available at
-				  // https://firebase.google.com/docs/storage/web/handle-errors
-				  switch (error.code) {
-					case 'storage/object-not-found':
-					  // File doesn't exist
-					  alert("File does not exist");
-					  break;
-
-					case 'storage/unauthorized':
-					  // User doesn't have permission to access the object
-					  alert("You do not have permission :(");
-					  break;
-
-					case 'storage/canceled':
-					  // User canceled the upload
-					  break;
-
-					case 'storage/unknown':
-						alert("unknown error");
-					  // Unknown error occurred, inspect the server response
-					  break;
-				  }
-				});
-			});
-			
 		}
 		
 		eventListeners(){
@@ -749,59 +686,22 @@ var CoreysChatApp = (function() {
 			var messages_array = [];
 		
 			this.sendBtn.onclick = function() {
-				if (that.textBox.value !== ""){
-					that.sendMessage("text");
-				}
+				that.sendMessage();
 			}
 			this.textBox.onkeydown = function(e) {
 				if(e.keyCode === 13)
-					if (that.textBox.value !== ""){
-						that.sendMessage("text");
-					}
+					that.sendMessage();
 			}
 			this.imageBtn.onclick = function(e) {
 				console.log(e);
 				that.fileInput.click();
 			}
 			this.fileInput.onchange = function() {
-				//alert("Sorry, this feature is not available yet. :(");
-				that.addImage();
+				alert("Sorry, this feature is not available yet. :(");
 			}
 			dbMessageRef.on('child_added', function(data) {
 				if(data.val().userId != userId){
-					if(data.val().type == "image"){
-						
-						chatImageRef.getDownloadURL().then(function(url) {
-							that.receiveMessage("<img src='" + url + "' style='max-width: 300px' />");
-						}).catch(function(error) {
-
-						  // A full list of error codes is available at
-						  // https://firebase.google.com/docs/storage/web/handle-errors
-						  switch (error.code) {
-							case 'storage/object-not-found':
-							  // File doesn't exist
-							  alert("Failed to retrieve image from other user. File does not exist");
-							  break;
-
-							case 'storage/unauthorized':
-							  // User doesn't have permission to access the object
-							  alert("You do not have permission :(");
-							  break;
-
-							case 'storage/canceled':
-							  // User canceled the upload
-							  break;
-
-							case 'storage/unknown':
-								alert("unknown error after retreiving image");
-							  // Unknown error occurred, inspect the server response
-							  break;
-						  }
-						});
-					}
-					else if(data.val().type == "text"){
-						that.receiveMessage(data.val().message);
-					}
+					that.receiveMessage(data.val().message);
 				}
 			});
 		}

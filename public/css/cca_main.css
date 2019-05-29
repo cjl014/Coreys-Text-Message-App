@@ -17,8 +17,7 @@
 	width: 100%;
 	text-align: center;
 	margin: 0 auto;
-	position: relative;
-	top: 25%;
+	padding-top: 90px;
 }
 
 .cca_signIn_btn {
@@ -26,26 +25,16 @@
 	width: 100%;
 	max-width: 150px;
 	outline: none;
-	font-family: 'sans-serif';
-    font-style: italic;
-    box-shadow: 2px 2px 7px lightblue;
 }
 
 .cca_auth legend {
 	color: lightblue;
-	font-style: italic;
-    font-weight: bold;
-	font-size: 30px;
 }
 
 .cca_menu {
 	float: left;
 	width: 10%;
 	box-sizing: border-box;
-}
-
-.cca_menu button, .cca_chatbox button{
-	font-weight: bold;
 }
 
 .cca_logout_btn, .cca_clear_msgs_btn {
@@ -77,7 +66,7 @@
 .cca_users_window {
 	float: right;
 	width: 20%;
-	background-color: #3c5463;
+	background-color: dimgray;
 	box-sizing: border-box;
 }
 
