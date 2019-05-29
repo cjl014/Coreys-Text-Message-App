@@ -12,21 +12,17 @@ App Nickname: CCA
 Version:
 **/
 
-// Initialize Firebase
-firebase.initializeApp({
-	apiKey: "AIzaSyATMX8ijfGapT3xF2v_jo4iRhpCEehOMk0",
-	authDomain: "web-chat-application-corey.firebaseapp.com",
-	databaseURL: "https://web-chat-application-corey.firebaseio.com/",
-	storageBucket: "gs://web-chat-application-corey.appspot.com/"
-});
-
 /** Namespace closure - CoreysChatApp **/
 var CoreysChatApp = (function() {
 	
+	/** Add CSS **/
+	var cssLink = document.createElement("link");
+	cssLink.href = "css/chat_main.css";
+	cssLink.rel = "stylesheet"; 
+	cssLink.type = "text/css";
+	document.head.appendChild(cssLink);
+	
 	/** Global Variables **/
-	var storage = firebase.storage();
-	var storageRef = storage.ref();
-	var chatImageRef = storageRef.child("images/test.png");
 	var database = firebase.database();
 	var dbRef = database.ref();
 	var dbUsersRef = database.ref("Users");
@@ -38,9 +34,6 @@ var CoreysChatApp = (function() {
 	var chatWindow;
 	var chatUsersWindow;
 	var chatBox;
-	var supportClass;
-	var roboticResponseCount = 1;
-	var isLoggedIn = false;
 
 	
 	/** Class - CoreysChatApp **/
@@ -51,11 +44,7 @@ var CoreysChatApp = (function() {
 				'buttonColor': '',
 				'appWidth': '100%',
 				'appHeight': '100%',
-				'chatWindowColor': '#f2f2f2',
-				'loaderImage': '',
-				'sendMessageSound': '',
-				'receiveMessageSound': '',
-				'attachmentImage': 'https://www.w3.org/TR/WWWicn/camera.gif',
+				'chatWindowColor': '#f2f2f2'
 			}
 			chatAppContainer = document.getElementById(elementId);
 			
@@ -80,6 +69,8 @@ var CoreysChatApp = (function() {
 		
 		// Creates the initial page and starts the chat app
 		initialize(){
+			chatLoginPage = new ChatLoginPage();
+			
 			chatLoginPage.render();
 			chatLoginPage.authentication();
 		}
@@ -90,7 +81,7 @@ var CoreysChatApp = (function() {
 	/** Class/Constructor - ChatLoginPage **/
 	class ChatLoginPage{
 		constructor(){
-			this.container = document.createElement("div");
+			this.cca_div = document.createElement("div");
 			this.fieldset = document.createElement("fieldset");
 			this.legend = document.createElement("legend");
 			this.loader_img = document.createElement("img");
@@ -100,31 +91,32 @@ var CoreysChatApp = (function() {
 		
 		// Creates the login page
 		render(){
-			this.container.className = "cca_auth";
-			this.container.style.background = settings.mainColor;
-			this.container.style.width = settings.appWidth;
-			this.container.style.height = settings.appHeight;
 			
+			
+			this.cca_div.className = "cca_auth";
 			this.legend.innerHTML = "Corey's Chat App";
-			
+			this.loader_img.src = "images/loader.gif";
 			this.loader_img.className = "cca_loader_gif";
-			this.loader_img.src = settings.loaderImage;
-			this.loader_img.style.display = "none";
-			
 			this.login_div.className = "cca_signupOrLogin";
-			this.login_div.style.backgroundColor = settings.mainColor;
-			
 			this.login_btn.className = "cca_signIn_btn";
 			this.login_btn.innerHTML = "Sign In";
 			this.login_btn.style.backgroundColor = settings.buttonColor;
 			
-			// Append HTML
-			this.container.appendChild(this.fieldset);
+			this.cca_div.appendChild(this.fieldset);
+			this.cca_div.style.backgroundColor = settings.mainColor;
+			this.cca_div.style.width = settings.appWidth;
+			this.cca_div.style.height = settings.appHeight;
 			this.fieldset.appendChild(this.legend);
 			this.fieldset.appendChild(this.loader_img);
 			this.fieldset.appendChild(this.login_div);
+			this.fieldset.style.height = "100%";
+			this.fieldset.style.borderRadius = "25px";
+			this.fieldset.style.padding = "0px";
+			this.fieldset.style.fontSize = "x-large";
+			this.fieldset.style.textAlign = "center";
 			this.login_div.appendChild(this.login_btn);
-			chatAppContainer.appendChild(this.container);		
+			this.login_div.style.backgroundColor = settings.mainColor;
+			chatAppContainer.appendChild(this.cca_div);	
 			
 			/** --- View of how the HTML should look like ---
 				<div class="cca_auth">
@@ -137,28 +129,38 @@ var CoreysChatApp = (function() {
 					</fieldset>
 				</div>'
 			**/	
-			
-			this.eventListeners();
+
 		}
 		
+		
 		authentication(){
+		var that = this;
+		var supportClass = new SupportClass();
+		
+		/**Set event listeners**/
+		function eventListeners() {
 			
-			var that = this;
-			var users;
-			var userValue = "";
-			var limit;
-			var userCount;
-			var isUserInDatabase = false;
-			var objUpdate = {};
-			var dbUserRef;
+			// When user clicks the "Sign In" button, log them in as an anonymous user
+			that.login_btn.onclick = function() {
+				that.login_div.remove();
+				that.loader_img.style.display = "block";
+				
+				firebase.auth().signInAnonymously().catch(function(error) {
+					// Handle Errors here.
+					var errorCode = error.code;
+					var errorMessage = error.message;
+					console.log("Error on Sign-In!: " + errorCode + " " + errorMessage);
+				});
+			}
 			
 			var onAuthFunction = function(currentUser) {
 				if (currentUser) {
-					limit = 2;
-					userCount = 0;
+					var users;
+					var userValue = "";
+					var limit = 2;
+					var userCount = 0;
 					// User is signed in.
 					dbUsersRef.once('value').then(function(data) {
-						isLoggedIn = true;
 						users = data.val();
 						
 						// Check if user id is already in database for online users
@@ -176,9 +178,18 @@ var CoreysChatApp = (function() {
 							chatLoginPage.render();
 						}
 						else{
-							users = {};
+							var isUserInDatabase = false;
+							var usersArray = [];
+							var userValue = "";
+							var users = {};
+							var objUpdate = {};
+							chatMenuWindow = new ChatMenuWindow();
+							chatWindow = new ChatWindow();
+							chatUsersWindow = new ChatUsersWindow();
+							chatBox = new ChatBox();
 							
-							chatAppContainer.removeChild(that.container);
+							chatAppContainer.removeChild(that.cca_div);
+							
 							supportClass.removeMessagesFromDatabase();
 							chatMenuWindow.render()
 							chatWindow.render();
@@ -207,7 +218,7 @@ var CoreysChatApp = (function() {
 											if(userValue == "offline" ){
 												objUpdate[key] = currentUser.uid; //tip: use this instead of computed property because IE doesn't support
 												dbUsersRef.update(objUpdate);
-												dbUserRef = database.ref("Users/" + key);
+												var dbUserRef = database.ref("Users/" + key);
 												dbUserRef.onDisconnect().set("offline");
 												break;
 											}
@@ -222,59 +233,60 @@ var CoreysChatApp = (function() {
 					console.log("not logged in");
 				}
 			};
-				
+			
 			if(firebase.auth().hasListener() == false)
 				firebase.auth().onAuthStateChanged(onAuthFunction);  // When user authorization state has changed..
 		}
 		
-		
-		// Set event listeners
-		eventListeners() {
-			var that = this;
-			
-			// When user clicks the "Sign In" button, log them in as an anonymous user
-			this.login_btn.onclick = function() {
-				that.login_div.remove();
-				that.loader_img.style.display = "block";
-				
-				firebase.auth().signInAnonymously().catch(function(error) {
-					// Handle Errors here.
-					let errorCode = error.code;
-					let errorMessage = error.message;
-					console.log("Error on Sign-In!: " + errorCode + " " + errorMessage);
-				});
-			}
+		eventListeners();
 		}
 	}
+	
 	
 	
 	
 	/** Class - ChatMenuWindow **/
 	class ChatMenuWindow{
 		constructor() {
-			this.container = document.createElement("div");
+			this.menu_div = document.createElement("div");
 			this.logout_btn = document.createElement("button");
 			this.clear_btn = document.createElement("button");
 		}
 		
 		// Create chat menu window
 		render(){
-			this.container.className = "cca_menu";
-			this.container.style.background = settings.mainColor;
-			this.container.style.height = settings.appHeight;
+			var btn_width = "100%";
+			var btn_height = "40px";
+			var btn_opacity = "0.9";
+			var btn_word_wrap = "break-word";
+			
+			this.menu_div.className = "cca_menu";
+			this.menu_div.style.backgroundColor = settings.mainColor;
+			this.menu_div.style.float = "left";
+			this.menu_div.style.width = "10%";
+			this.menu_div.style.height = settings.appHeight;
+			this.menu_div.style.backgroundColor = settings.mainColor;
+			this.menu_div.style.boxSizing = "border-box";
 			
 			this.logout_btn.className = "cca_logout_btn";
 			this.logout_btn.style.backgroundColor = settings.buttonColor;
+			this.logout_btn.style.width = btn_width;
+			this.logout_btn.style.height = btn_height;
+			this.logout_btn.style.opacity = btn_opacity;
+			this.logout_btn.style.wordWrap = btn_word_wrap;
 			this.logout_btn.innerHTML = "Logout";
 			
 			this.clear_btn.className = "cca_clear_msgs_btn";
 			this.clear_btn.style.backgroundColor = settings.buttonColor;
+			this.clear_btn.style.width = btn_width;
+			this.clear_btn.style.height = btn_height;
+			this.clear_btn.style.opacity = btn_opacity;
+			this.clear_btn.style.wordWrap = btn_word_wrap;
 			this.clear_btn.innerHTML = "Clear messages";
 			
-			// Append to HTML
-			this.container.appendChild(this.logout_btn);
-			this.container.appendChild(this.clear_btn);
-			chatAppContainer.appendChild(this.container);
+			this.menu_div.appendChild(this.logout_btn);
+			this.menu_div.appendChild(this.clear_btn);
+			chatAppContainer.appendChild(this.menu_div);
 			
 			/** --- View of how the HTML should look like ---
 				<div class="cca_menu">
@@ -316,7 +328,7 @@ var CoreysChatApp = (function() {
 							dbUsersRef.update(objUpdate);
 							break;
 						}
-					}
+					}	
 				}
 			});
 			
@@ -324,7 +336,6 @@ var CoreysChatApp = (function() {
 			firebase.auth().signOut().then(function() {
 				
 				// Sign-out successful.
-				isLoggedIn = false;
 				chatAppContainer.innerHTML = "";
 				chatLoginPage.render();
 				chatLoginPage.authentication();
@@ -348,34 +359,54 @@ var CoreysChatApp = (function() {
 				that.logout();
 			}
 		}
+		
 	}
+	
+	
+	
+	
+	
+	
 	
 	
 	
 	/** Class - ChatWindow **/
 	class ChatWindow {
 		constructor() {
-			this.container = document.createElement("div");
+			this.window = document.createElement("div");
 			this.table = document.createElement("table");
 			this.tr = document.createElement("tr");
 			this.td = document.createElement("td");
 		}
 		
-	
+		
 		// Create HTML for the page
-		render() {			
-			this.container.className = "cca_window";
-			this.container.style.backgroundColor = settings.chatWindowColor;
+		render(){
+			var windowHeight = "80%";
+			
+			this.window.className = "cca_window";
+			this.window.style.float = "left";
+			this.window.style.width = "70%";
+			this.window.style.height = windowHeight;
+			this.window.style.backgroundColor = settings.chatWindowColor;
+			this.window.style.overflow = "auto";
+			this.window.style.boxSizing = "border-box";
 			
 			this.table.className = "cca_window_table";
+			this.table.style.verticalAlign = "bottom";
+			this.table.style.width = "100%";
+			this.table.style.height = windowHeight;
 			
 			this.td.className = "cca_window_td";
+			this.td.style.verticalAlign = "bottom";
+			this.td.style.height = windowHeight;
+			this.td.style.paddingBottom = "10px";
 			
-			// Append to html
-			this.container.appendChild(this.table);
+			//append to html
+			this.window.appendChild(this.table);
 			this.table.appendChild(this.tr);
 			this.tr.appendChild(this.td);
-			chatAppContainer.appendChild(this.container);
+			chatAppContainer.appendChild(this.window);
 			
 			/** --- View of how the HTML should look like ---
 				<div class="chat_window">
@@ -387,10 +418,6 @@ var CoreysChatApp = (function() {
 					</table>
 				</div>
 			**/	
-		}
-		
-		adjustHeight() {
-			this.container.style.height = (chatAppContainer.clientHeight - chatBox.textBox.clientHeight - 4) + "px";
 		}
 	}
 	
@@ -405,24 +432,21 @@ var CoreysChatApp = (function() {
 			
 		}
 		
+		
 		// Create HTML for the page
 		render(){
 			this.container.className = "cca_users_window";
-			this.container.style.height = settings.appHeight;
 			
 			this.titleDiv.className = "cca_users_window_title";
-			this.titleDiv.style.background = settings.mainColor;
+			this.titleDiv.style.backgroundColor = settings.mainColor;
 			this.titleDiv.innerHTML = "Users Window";
 			
 			this.titleSpan.style.fontSize = "13px";
 			this.titleSpan.style.color = "lime";
 			
-			// Append to HTML
 			this.container.appendChild(this.titleDiv);
 			this.titleDiv.appendChild(this.titleSpan);
-			
 			chatAppContainer.appendChild(this.container);
-			
 			
 			/** --- View of how the HTML should look like ---
 				<div class="cca_users_window">
@@ -438,19 +462,9 @@ var CoreysChatApp = (function() {
 		
 		// Adds user to window
 		addUserToWindow(name){
-			let user_div = document.createElement("div");
-			user_div.innerHTML = name;
-			user_div.className = "cca_user_div";
-			this.container.appendChild(user_div);
-			
-			let user_divs = document.querySelectorAll("#" + chatAppContainer.id + " .cca_user_div");
-			
-			for(let i = 0; i < user_divs.length; i++){
-				this.container.appendChild(user_divs[i]);
-			}
-			
-			
-			
+			var name = name;
+
+			this.titleDiv.insertAdjacentHTML('afterend', '<div class="cca_user_div" >' + name + '</div>');
 		}
 		
 		// Removes user from window
@@ -460,7 +474,6 @@ var CoreysChatApp = (function() {
 			
 			for(var i=0; i < cca_user_divs.length; i++){
 				userInWindow = cca_user_divs[i].innerHTML;
-				
 				if(name == userInWindow){
 					this.container.removeChild(cca_user_divs[i]);
 				}
@@ -495,7 +508,7 @@ var CoreysChatApp = (function() {
 					if(userValue == "offline"){ // Remove user from window if they are offline
 						that.removeUserFromWindow(key);
 					}
-					else if(!that.userIsInWindow(key)){ // Add user to window if they are online
+					else if(!that.userIsInWindow(key)){ // Add user to window if they are offline
 						that.addUserToWindow(key);	
 					}
 				}
@@ -515,12 +528,10 @@ var CoreysChatApp = (function() {
 			this.imageBtn = document.createElement("button");
 			this.imageBtnImg = document.createElement("img");
 			this.fileInput = document.createElement("input");
-			this.receiveSound = document.createElement("audio");
-			this.sendSound = document.createElement("audio");
 			
 		}
 		
-		render() {
+		render(){
 			var buttonHeight = "50px";
 			var buttonWidth = "10%";
 	
@@ -529,29 +540,39 @@ var CoreysChatApp = (function() {
 			this.textBox.className = "cca_chat_textbox";
 			this.textBox.type = "text";
 			this.textBox.placeholder = "Enter message...";
+			this.textBox.style.width = "60%";
+			this.textBox.style.height = "50px";
+			this.textBox.style.borderRadius = "20px 0px 0px 20px";
+			this.textBox.style.borderBottomColor = "darkgray";
+			this.textBox.style.outline = "darkgray";
+			this.textBox.style.fontSize = "25px";
+			this.textBox.style.color = "gray";
+			this.textBox.style.float = "left";
+			this.textBox.style.padding = "0px 10px";
+			this.textBox.style.boxSizing = "border-box";
 			
 			this.sendBtn.className = "cca_send_btn";
+			this.sendBtn.style.height = buttonHeight;
+			this.sendBtn.style.width = buttonWidth;
+			this.sendBtn.style.float = "left";
+			this.sendBtn.style.boxSizing = "border-box";
 			this.sendBtn.innerHTML = "Send";
-			this.sendBtn.style.backgroundColor = settings.buttonColor;
 			
 			this.imageBtn.className = "cca_img_btn";
+			this.imageBtn.style.height = buttonHeight;
+			this.imageBtn.style.width = buttonWidth;
+			this.imageBtn.style.float = "left";
+			this.imageBtn.style.boxSizing = "border-box";
 			this.imageBtn.style.backgroundColor = settings.buttonColor;
 			
-			this.imageBtnImg.src = settings.attachmentImage;
+			this.imageBtnImg.src = "images/img_attach1.png";
+			this.imageBtnImg.style.width = "100%";
+			this.imageBtnImg.style.maxWidth = "50px";
+			this.imageBtnImg.style.minWidth = "20px";
+			this.imageBtnImg.style.backgroundColor = settings.buttonColor;
 			
 			this.fileInput.className = "cca_img_file";
-			this.fileInput.type = "file";
-			this.fileInput.accept = "image/*";
-			
-			this.receiveSound.src = settings.sendMessageSound;
-			this.receiveSound.setAttribute("preload", "auto");
-			this.receiveSound.setAttribute("controls", "none");
-			this.receiveSound.style.display = "none";
-			
-			this.sendSound.src = settings.receiveMessageSound;
-			this.sendSound.setAttribute("preload", "auto");
-			this.sendSound.setAttribute("controls", "none");
-			this.sendSound.style.display = "none";
+			this.fileInput.style.visibility = "hidden";
 			
 			//append to HTML
 			this.container.appendChild(this.textBox);
@@ -559,8 +580,6 @@ var CoreysChatApp = (function() {
 			this.container.appendChild(this.imageBtn);
 			this.imageBtn.appendChild(this.imageBtnImg);
 			this.container.appendChild(this.fileInput);
-			document.body.appendChild(this.receiveSound);
-			document.body.appendChild(this.receiveSound);
 			chatAppContainer.appendChild(this.container);
 			
 			/** --- View of how the HTML should look like ---
@@ -571,111 +590,29 @@ var CoreysChatApp = (function() {
 				<input type="file" class="cca_img_file" />
 			</div>
 			**/		
-
-			chatWindow.adjustHeight();
-			chatWindow.container.scrollTop = chatWindow.container.scrollHeight;
+			
+			chatWindow.window.scrollTop = chatWindow.window.scrollHeight;
 
 			this.eventListeners();
 		}
 	
-		sendMessage(type, imgURL){
-			var that = this;
+		sendMessage(){
 			var userId = firebase.auth().currentUser.uid;
-			var HTML = '';
-			
-			if(type == "text"){
-				HTML = '<div class="sent_msg_div"><div class="chat_msg sent_msg">' + 
+			var HTML = '<div class="sent_msg_div"><div class="chat_msg sent_msg">' + 
 						this.textBox.value + 
 						'</div></div>';
-				if (this.textBox.value !== ""){
-					dbMessageRef.remove();
-					// Add message to database
-					dbMessageRef.push().set({
-						"type": "text",
-						"message": this.textBox.value,
-						"userId": userId,
-						"timeStamp": "null"
-					});
-					chatWindow.td.insertAdjacentHTML('beforeend', HTML);
-					this.textBox.value = "";
-					chatWindow.container.scrollTop = chatWindow.container.scrollHeight;
-					
-					if(settings.sendMessageSound != ""){
-						this.sendSound.play();
-					}
-				}
-			}
-			if(type == "image"){
-				HTML = '<div class="sent_msg_div"><div class="chat_msg sent_msg"><img src="' + 
-						imgURL + 
-						'" style="max-width: 300px" /></div></div>';
+			if(this.textBox.value !== ""){
 				dbMessageRef.remove();
-					// Add message to database
-					dbMessageRef.push().set({
-						"type": "image",
-						"message": "",
-						"userId": userId,
-						"timeStamp": "null"
-					});
-				
+				// Add message to database
+				dbMessageRef.push().set({
+					"message": this.textBox.value,
+					"userId": userId,
+					"timeStamp": "null"
+				});
 				chatWindow.td.insertAdjacentHTML('beforeend', HTML);
-				chatWindow.container.scrollTop = chatWindow.container.scrollHeight;
-				
-				if(settings.sendMessageSound != ""){
-					this.sendSound.play();
-				}
+				this.textBox.value = "";
+				chatWindow.window.scrollTop = chatWindow.window.scrollHeight;
 			}
-			
-			// Check how many users
-			dbUsersRef.once('value').then(function(data) {
-				var users = data.val();
-				var userCount = 0;
-				var robotMsg1, robotMsg2, robotMsg3, robotMsg4;
-				
-				
-				for (var key in users){
-					if(users[key] != "offline"){
-						userCount++;
-					}
-				}
-				if (userCount <= 1 && roboticResponseCount >= 1){
-					robotMsg1 = setTimeout(function(){
-						if(isLoggedIn){
-							that.roboticResponse('Hi! How are you?');
-						}else{
-							clearTimeout(robotMsg2);
-							clearTimeout(robotMsg3);
-							clearTimeout(robotMsg4);
-						}
-					}, 1500);
-					
-					robotMsg2 = setTimeout(function(){
-						if(isLoggedIn){
-							that.roboticResponse('This is a robotic response because you are the only user.');
-						}else{
-							clearTimeout(robotMsg3);
-							clearTimeout(robotMsg4);
-						}
-					}, 6000);
-					
-					robotMsg3 = setTimeout(function(){
-						if(isLoggedIn){
-							that.roboticResponse('Want to try 2 users? Open it in a new browser.')
-						}else{
-							clearTimeout(robotMsg4);
-						}
-					}, 12000);
-						
-						
-					robotMsg4 = setTimeout(function(){
-						if(isLoggedIn){
-							that.roboticResponse('The limit is 2 users. So try to login with 3 to see what happens.');
-						}
-					}, 20000);
-					
-					roboticResponseCount--;
-				}
-			});
 		}
 		
 		receiveMessage(message){
@@ -683,64 +620,11 @@ var CoreysChatApp = (function() {
 					message + 
 					'</div></div>';
 			chatWindow.td.insertAdjacentHTML('beforeend', HTML);
-			chatWindow.container.scrollTop = chatWindow.container.scrollHeight;
-			
-			if(settings.receiveMessageSound != ""){
-				this.receiveSound.play();
-			}
-				
-			
-		}
-		
-		roboticResponse(message){
-			var HTML = '<div class="receive_msg_div"><div class="chat_msg receive_msg">' + 
-					message + 
-					'</div></div>';
-
-				chatWindow.td.insertAdjacentHTML('beforeend', HTML);
-				chatWindow.container.scrollTop = chatWindow.container.scrollHeight;
-				
-				if(settings.receiveMessageSound != ""){
-					this.receiveSound.play();
-				}
+			chatWindow.window.scrollTop = chatWindow.window.scrollHeight;
 		}
 		
 		addImage(){
 			// TODO:
-			var that = this;
-			var file = this.fileInput.files[0];
-			chatImageRef.put(file).then(function(snapshot){
-				console.log('uploaded a blob or file');
-				
-				chatImageRef.getDownloadURL().then(function(url) {
-					that.sendMessage("image", url);
-				}).catch(function(error) {
-
-				  // A full list of error codes is available at
-				  // https://firebase.google.com/docs/storage/web/handle-errors
-				  switch (error.code) {
-					case 'storage/object-not-found':
-					  // File doesn't exist
-					  alert("File does not exist");
-					  break;
-
-					case 'storage/unauthorized':
-					  // User doesn't have permission to access the object
-					  alert("You do not have permission :(");
-					  break;
-
-					case 'storage/canceled':
-					  // User canceled the upload
-					  break;
-
-					case 'storage/unknown':
-						alert("unknown error");
-					  // Unknown error occurred, inspect the server response
-					  break;
-				  }
-				});
-			});
-			
 		}
 		
 		eventListeners(){
@@ -749,59 +633,22 @@ var CoreysChatApp = (function() {
 			var messages_array = [];
 		
 			this.sendBtn.onclick = function() {
-				if (that.textBox.value !== ""){
-					that.sendMessage("text");
-				}
+				that.sendMessage();
 			}
 			this.textBox.onkeydown = function(e) {
 				if(e.keyCode === 13)
-					if (that.textBox.value !== ""){
-						that.sendMessage("text");
-					}
+					that.sendMessage();
 			}
 			this.imageBtn.onclick = function(e) {
 				console.log(e);
 				that.fileInput.click();
 			}
 			this.fileInput.onchange = function() {
-				//alert("Sorry, this feature is not available yet. :(");
-				that.addImage();
+				alert("Sorry, this feature is not available yet. :(");
 			}
 			dbMessageRef.on('child_added', function(data) {
 				if(data.val().userId != userId){
-					if(data.val().type == "image"){
-						
-						chatImageRef.getDownloadURL().then(function(url) {
-							that.receiveMessage("<img src='" + url + "' style='max-width: 300px' />");
-						}).catch(function(error) {
-
-						  // A full list of error codes is available at
-						  // https://firebase.google.com/docs/storage/web/handle-errors
-						  switch (error.code) {
-							case 'storage/object-not-found':
-							  // File doesn't exist
-							  alert("Failed to retrieve image from other user. File does not exist");
-							  break;
-
-							case 'storage/unauthorized':
-							  // User doesn't have permission to access the object
-							  alert("You do not have permission :(");
-							  break;
-
-							case 'storage/canceled':
-							  // User canceled the upload
-							  break;
-
-							case 'storage/unknown':
-								alert("unknown error after retreiving image");
-							  // Unknown error occurred, inspect the server response
-							  break;
-						  }
-						});
-					}
-					else if(data.val().type == "text"){
-						that.receiveMessage(data.val().message);
-					}
+					that.receiveMessage(data.val().message);
 				}
 			});
 		}
@@ -821,14 +668,5 @@ var CoreysChatApp = (function() {
 		}
 	}
 	
-	
-	
-	chatMenuWindow = new ChatMenuWindow();
-	chatWindow = new ChatWindow();
-	chatUsersWindow = new ChatUsersWindow();
-	chatBox = new ChatBox();
-	chatLoginPage = new ChatLoginPage();	
-	supportClass = new SupportClass();	
-							
 	return CoreysChatApp;
 }());
